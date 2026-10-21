@@ -47,7 +47,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Dialog
+import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -653,7 +653,7 @@ private fun SettingsScreen(state: AssistantUiState, vm: AssistantViewModel) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             row.forEach { preset ->
                                 Surface(Modifier.weight(1f).padding(vertical = 4.dp).clickable { vm.selectWidgetPreset(preset.id) }, shape = RoundedCornerShape(13.dp), color = if (preset.id == state.widgetPreset) Color(0xFF28233C) else Panel2, border = BorderStroke(1.dp, if (preset.id == state.widgetPreset) Violet else Color.Transparent)) {
-                                    Text("${preset.glyph}  ${preset.name}", Modifier.padding(horizontal = 10.dp, vertical = 12.dp), fontSize = 11.sp, color = preset.accent)
+                                    Text("${preset.glyph}  ${preset.name}", Modifier.padding(horizontal = 10.dp, vertical = 12.dp), fontSize = 11.sp, color = Color(preset.accent))
                                 }
                             }
                             if (row.size == 1) Spacer(Modifier.weight(1f))

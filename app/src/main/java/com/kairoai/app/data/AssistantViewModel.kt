@@ -246,7 +246,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         runCatching { vault.save(trimmed) }.onSuccess {
             _ui.update { it.copy(apiKeySaved = true, error = null, status = "Anahtar cihazda şifreli saklandı") }
             publish("ready", "Gemini anahtarı kaydedildi")
-        }.onFailure { _ui.update { it.copy(error = "Anahtar kaydedilemedi: ${it.message}") } }
+        }.onFailure { err -> _ui.update { it.copy(error = "Anahtar kaydedilemedi: ${err.message}") } }
     }
 
     fun deleteApiKey() {
@@ -266,7 +266,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                     _ui.update { current -> current.copy(models = models, selectedModel = current.selectedModel.takeIf { id -> models.any { it.id == id } } ?: models.firstOrNull()?.id.orEmpty(), status = "${models.size} kullanılabilir model bulundu", error = null) }
                     publish("ready", "${models.size} Gemini modeli hazır")
                 }
-                .onFailure { _ui.update { it.copy(status = "Bağlantı kurulamadı", error = it.message ?: "Model listesi alınamadı") }; publish("error", "Model listesi alınamadı") }
+                .onFailure { err -> _ui.update { it.copy(status = "Bağlantı kurulamadı", error = err.message ?: "Model listesi alınamadı") }; publish("error", "Model listesi alınamadı") }
         }
     }
 
@@ -472,7 +472,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             result.onSuccess { text -> _ui.update { it.copy(selectedFileUri = file.uri, selectedFilePath = file.path, fileContent = text, editProposal = "", error = null) } }
-                .onFailure { _ui.update { it.copy(error = it.message ?: "Dosya okunamadı.") } }
+                .onFailure { err -> _ui.update { it.copy(error = err.message ?: "Dosya okunamadı.") } }
         }
     }
 
@@ -559,7 +559,7 @@ ${current.fileContent}
             result.onSuccess {
                 _ui.update { it.copy(fileContent = proposal, editProposal = "", status = "Dosya güncellendi", error = null) }
                 publish("done", "${_ui.value.selectedFilePath.substringAfterLast('/')} güncellendi")
-            }.onFailure { _ui.update { it.copy(error = it.message ?: "Dosya yazılamadı.") }; publish("error", "Dosya yazılamadı") }
+            }.onFailure { err -> _ui.update { it.copy(error = err.message ?: "Dosya yazılamadı.") }; publish("error", "Dosya yazılamadı") }
         }
     }
 
