@@ -1,0 +1,3 @@
+Kairo mascot GIFs and the Kairo launcher vector in this project were created specifically for this prototype. They do not use Coucou's name, character, icon, sounds, or source assets.
+
+Noto Sans is a trademark of Google LLC. The font file is distributed under Apache License 2.0; see Apache-2.0-Noto-Sans.txt.

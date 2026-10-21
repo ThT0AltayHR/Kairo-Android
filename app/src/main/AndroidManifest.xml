@@ -1,0 +1,108 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application
+        android:allowBackup="false"
+        android:label="Kairo AI"
+        android:icon="@drawable/ic_kairo"
+        android:usesCleartextTraffic="false"
+        android:theme="@style/Theme.KairoAI">
+        <activity android:name=".widget.WidgetConfigActivity" android:exported="true" android:theme="@style/Theme.KairoAI" />
+        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".overlay.IslandOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled floating task status companion" />
+        </service>
+        <receiver android:name=".widget.KairoWidget01Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_01" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget02Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_02" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget03Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_03" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget04Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_04" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget05Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_05" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget06Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_06" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget07Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_07" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget08Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_08" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget09Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_09" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget10Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_10" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget11Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_11" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget12Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_12" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget13Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_13" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget14Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_14" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget15Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_15" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget16Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_16" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget17Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_17" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget18Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_18" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget19Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_19" />
+        </receiver>
+        <receiver android:name=".widget.KairoWidget20Provider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kairo_widget_info_20" />
+        </receiver>
+    </application>
+</manifest>

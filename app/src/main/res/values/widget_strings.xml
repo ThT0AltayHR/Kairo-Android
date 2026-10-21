@@ -1,0 +1,22 @@
+<resources>
+    <string name="widget_title_01">Kairo · Aurora</string>
+    <string name="widget_title_02">Kairo · Neon Dojo</string>
+    <string name="widget_title_03">Kairo · Moon Garden</string>
+    <string name="widget_title_04">Kairo · Sakura Circuit</string>
+    <string name="widget_title_05">Kairo · Deep Space</string>
+    <string name="widget_title_06">Kairo · Mint Signal</string>
+    <string name="widget_title_07">Kairo · Ember</string>
+    <string name="widget_title_08">Kairo · Blue Hour</string>
+    <string name="widget_title_09">Kairo · Lavender Haze</string>
+    <string name="widget_title_10">Kairo · Solar Flare</string>
+    <string name="widget_title_11">Kairo · Glacier</string>
+    <string name="widget_title_12">Kairo · Rose Quartz</string>
+    <string name="widget_title_13">Kairo · Cyber Forest</string>
+    <string name="widget_title_14">Kairo · Violet Rain</string>
+    <string name="widget_title_15">Kairo · Quiet Tide</string>
+    <string name="widget_title_16">Kairo · Starforge</string>
+    <string name="widget_title_17">Kairo · Indigo Pulse</string>
+    <string name="widget_title_18">Kairo · Cloud Study</string>
+    <string name="widget_title_19">Kairo · Crimson Night</string>
+    <string name="widget_title_20">Kairo · Zero Gravity</string>
+</resources>
