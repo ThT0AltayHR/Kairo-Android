@@ -66,9 +66,15 @@ class GeminiRepository {
                 if (attachment.textContent.isNotBlank()) {
                     parts.put(JSONObject().put("text", "Attached file: ${attachment.name}\n${attachment.textContent}"))
                 } else if (attachment.base64Data.isNotBlank()) {
-                    parts.put(JSONObject().put("inline_data", JSONObject()
-                        .put("mime_type", attachment.mimeType)
-                        .put("data", attachment.base64Data)))
+                    val mime = attachment.mimeType.lowercase()
+                    val isSupportedInline = mime.startsWith("image/") || mime.startsWith("audio/") || mime.startsWith("video/") || mime == "application/pdf"
+                    if (isSupportedInline) {
+                        parts.put(JSONObject().put("inline_data", JSONObject()
+                            .put("mime_type", attachment.mimeType)
+                            .put("data", attachment.base64Data)))
+                    } else {
+                        parts.put(JSONObject().put("text", "Attached file: ${attachment.name} (${attachment.mimeType}, ${attachment.sizeBytes} bytes)"))
+                    }
                 }
             }
             contents.put(JSONObject()

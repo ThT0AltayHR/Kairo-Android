@@ -112,7 +112,7 @@ fun KairoApp(vm: AssistantViewModel) {
                     Page.Chat -> ChatScreen(
                         state,
                         vm,
-                        onAttach = { chatFilePicker.launch(arrayOf("image/png", "image/jpeg", "image/webp", "application/pdf", "text/*", "application/json")) },
+                        onAttach = { chatFilePicker.launch(arrayOf("*/*")) },
                         onHistory = { historyOpen = true },
                         onNewConversation = vm::startNewConversation
                     )
@@ -375,7 +375,16 @@ private fun ChatScreen(
                 if (state.attachmentLoading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = Violet)
                 else Icon(Icons.Filled.AttachFile, contentDescription = "Dosya ekle", tint = Violet)
             }
-            OutlinedTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f), placeholder = { Text("Kairo'ya bir şey sor…", color = Muted) }, shape = RoundedCornerShape(22.dp), maxLines = 5, enabled = !state.busy)
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it },
+                modifier = Modifier.weight(1f),
+                textStyle = LocalTextStyle.current.copy(color = Color.White),
+                placeholder = { Text("Kairo'ya bir şey sor…", color = Muted) },
+                shape = RoundedCornerShape(22.dp),
+                maxLines = 5,
+                enabled = !state.busy
+            )
             Spacer(Modifier.width(8.dp))
             Button(
                 onClick = {
@@ -402,13 +411,18 @@ private fun ChatBubble(message: ChatMessage, streaming: Boolean) {
                 Text(
                     if (attachment.payloadAvailable) "📎 ${attachment.name} · ${attachment.sizeBytes / 1024} KB"
                     else "📎 ${attachment.name} · içerik gizlilik için saklanmadı",
-                    color = Muted,
+                    color = Color(0xFFD6D9E8),
                     fontSize = 10.sp,
                     modifier = Modifier.padding(top = 5.dp)
                 )
             }
             Spacer(Modifier.height(6.dp))
-            Text(message.text.ifBlank { if (streaming) "Yanıt hazırlanıyor…" else "" }, fontSize = 14.sp, lineHeight = 21.sp)
+            Text(
+                text = message.text.ifBlank { if (streaming) "Yanıt hazırlanıyor…" else "" },
+                color = Color.White,
+                fontSize = 14.sp,
+                lineHeight = 21.sp
+            )
             if (streaming) { Spacer(Modifier.height(6.dp)); Text("● ● ●   CANLI YANIT", color = Violet, fontFamily = FontFamily.Monospace, fontSize = 8.sp) }
         }
     }

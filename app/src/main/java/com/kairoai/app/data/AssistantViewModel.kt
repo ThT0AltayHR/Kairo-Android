@@ -289,10 +289,6 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun addChatAttachment(uri: Uri) {
-        if (_ui.value.draftAttachments.size >= 3) {
-            _ui.update { it.copy(error = "Bir mesaja en fazla 3 dosya ekleyebilirsin.") }
-            return
-        }
         viewModelScope.launch {
             _ui.update { it.copy(attachmentLoading = true, error = null) }
             val result = runCatching {
@@ -300,33 +296,49 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                     val app = getApplication<Application>()
                     val resolver = app.contentResolver
                     val mime = resolver.getType(uri)?.lowercase().orEmpty()
-                    val isText = mime.startsWith("text/") || mime == "application/json"
-                    val isImage = mime in setOf("image/png", "image/jpeg", "image/webp")
-                    require(isText || isImage || mime == "application/pdf") {
-                        "Bu dosya türü desteklenmiyor. PNG/JPEG/WebP, PDF veya metin dosyası seç."
-                    }
                     var name = "ek-dosya"
                     resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
                         if (cursor.moveToFirst()) name = cursor.getString(0) ?: name
                     }
                     val bytes = resolver.openInputStream(uri)?.use { input ->
                         val output = java.io.ByteArrayOutputStream()
-                        val buffer = ByteArray(8_192)
-                        var total = 0
+                        val buffer = ByteArray(16_384)
                         while (true) {
                             val count = input.read(buffer)
                             if (count < 0) break
-                            total += count
-                            require(total <= 5 * 1024 * 1024) { "Ek dosyalar 5 MB sınırını aşamaz." }
                             output.write(buffer, 0, count)
                         }
                         output.toByteArray()
                     } ?: error("Dosya okunamadı.")
-                    if (isText) {
-                        require(bytes.size <= 256 * 1024) { "Metin dosyaları 256 KB sınırını aşamaz." }
-                        ChatAttachment(name, mime, textContent = String(bytes, Charsets.UTF_8), sizeBytes = bytes.size.toLong())
-                    } else {
-                        ChatAttachment(name, mime, base64Data = Base64.encodeToString(bytes, Base64.NO_WRAP), sizeBytes = bytes.size.toLong())
+
+                    val ext = name.substringAfterLast('.', "").lowercase()
+                    val isZip = ext == "zip" || mime == "application/zip" || mime.contains("zip") || mime == "application/x-zip-compressed"
+                    val isSupportedInlineMedia = mime.startsWith("image/") || mime.startsWith("audio/") || mime.startsWith("video/") || mime == "application/pdf"
+
+                    when {
+                        isZip -> parseZipArchive(name, bytes)
+                        isSupportedInlineMedia -> ChatAttachment(
+                            name = name,
+                            mimeType = mime.ifBlank { if (ext == "pdf") "application/pdf" else "application/octet-stream" },
+                            base64Data = Base64.encodeToString(bytes, Base64.NO_WRAP),
+                            sizeBytes = bytes.size.toLong()
+                        )
+                        isLikelyUtf8(bytes) -> ChatAttachment(
+                            name = name,
+                            mimeType = mime.ifBlank { "text/plain" },
+                            textContent = String(bytes, Charsets.UTF_8),
+                            sizeBytes = bytes.size.toLong()
+                        )
+                        else -> {
+                            val info = "=== DOSYA: $name ===\nTür: ${mime.ifBlank { "bilinmiyor" }}\nBoyut: ${bytes.size} bayt\n(İkili formatlı dosya eklendi)"
+                            ChatAttachment(
+                                name = name,
+                                mimeType = mime.ifBlank { "application/octet-stream" },
+                                textContent = info,
+                                base64Data = Base64.encodeToString(bytes, Base64.NO_WRAP),
+                                sizeBytes = bytes.size.toLong()
+                            )
+                        }
                     }
                 }
             }
@@ -335,7 +347,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                     state.copy(
                         draftAttachments = state.draftAttachments + attachment,
                         attachmentLoading = false,
-                        status = "Dosya sohbete eklendi",
+                        status = "${attachment.name} sohbete eklendi",
                         error = null
                     )
                 }
@@ -343,6 +355,79 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                 _ui.update { it.copy(attachmentLoading = false, error = error.message ?: "Dosya eklenemedi.") }
             }
         }
+    }
+
+    private fun parseZipArchive(name: String, bytes: ByteArray): ChatAttachment {
+        val sb = StringBuilder()
+        sb.append("=== ZIP ARŞİVİ: ").append(name).append(" ===\n")
+        val entries = mutableListOf<String>()
+        val fileContents = mutableListOf<Pair<String, String>>()
+        runCatching {
+            java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(bytes)).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    val entryName = entry.name
+                    if (!entry.isDirectory && !entryName.startsWith("__MACOSX") && !entryName.contains("/.")) {
+                        val size = entry.size
+                        val sizeLabel = if (size >= 0) "${size / 1024} KB" else "bilinmiyor"
+                        entries.add("$entryName ($sizeLabel)")
+                        val ext = entryName.substringAfterLast('.', "").lowercase()
+                        val textExtensions = setOf(
+                            "txt", "md", "json", "xml", "html", "css", "js", "ts", "jsx", "tsx",
+                            "kt", "kts", "java", "py", "c", "cpp", "h", "hpp", "cs", "go", "rs",
+                            "rb", "php", "sh", "bash", "zsh", "yml", "yaml", "gradle", "properties",
+                            "sql", "csv", "tsv", "log", "env", "ini", "conf", "toml", "swift", "dart",
+                            "bat", "cmd", "r", "m", "mm", "scala", "clj", "lua", "pl", "asm"
+                        )
+                        val entryBytes = zis.readBytes()
+                        if (ext in textExtensions || isLikelyUtf8(entryBytes)) {
+                            val text = runCatching { String(entryBytes, Charsets.UTF_8) }.getOrNull()
+                            if (text != null && text.isNotBlank()) {
+                                fileContents.add(entryName to text)
+                            }
+                        }
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+        }
+        sb.append("\n[Arşiv Dosya Ağacı - Toplam ").append(entries.size).append(" dosya]:\n")
+        entries.take(250).forEach { sb.append("- ").append(it).append("\n") }
+        if (entries.size > 250) sb.append("... ve ").append(entries.size - 250).append(" dosya daha\n")
+        if (fileContents.isNotEmpty()) {
+            sb.append("\n[Arşiv İçi Dosya İçerikleri]:\n")
+            fileContents.forEach { (filePath, content) ->
+                sb.append("\n========================================\n")
+                sb.append("DOSYA: ").append(filePath).append("\n")
+                sb.append("========================================\n")
+                sb.append(content).append("\n")
+            }
+        }
+        return ChatAttachment(
+            name = name,
+            mimeType = "application/zip",
+            textContent = sb.toString(),
+            base64Data = "",
+            sizeBytes = bytes.size.toLong()
+        )
+    }
+
+    private fun isLikelyUtf8(bytes: ByteArray): Boolean {
+        if (bytes.isEmpty()) return true
+        var nullCount = 0
+        val checkLen = minOf(bytes.size, 8192)
+        for (i in 0 until checkLen) {
+            if (bytes[i] == 0.toByte()) nullCount++
+        }
+        if (nullCount > 0) return false
+        return runCatching {
+            val decoder = Charsets.UTF_8.newDecoder()
+            decoder.onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+            decoder.onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+            decoder.decode(java.nio.ByteBuffer.wrap(bytes, 0, checkLen))
+            true
+        }.getOrDefault(false)
     }
 
     fun removeChatAttachment(name: String) {
@@ -456,9 +541,9 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                 collectTextFiles(child, path, depth + 1, output)
             } else {
                 val ext = name.substringAfterLast('.', "").lowercase()
-                val textExtensions = setOf("kt", "kts", "java", "xml", "json", "gradle", "properties", "md", "txt", "js", "ts", "tsx", "jsx", "html", "css", "scss", "py", "yaml", "yml", "toml", "swift", "sh", "sql", "dart", "go", "rs", "c", "h", "cpp", "hpp")
+                val textExtensions = setOf("kt", "kts", "java", "xml", "json", "gradle", "properties", "md", "txt", "js", "ts", "tsx", "jsx", "html", "css", "scss", "py", "yaml", "yml", "toml", "swift", "sh", "sql", "dart", "go", "rs", "c", "h", "cpp", "hpp", "zip", "env", "ini", "conf", "bat")
                 val size = child.length()
-                if (ext in textExtensions && (size == 0L || size <= 32_768L)) output += WorkspaceFile(child.uri.toString(), path, name, size)
+                if (ext in textExtensions || child.type?.startsWith("text/") == true) output += WorkspaceFile(child.uri.toString(), path, name, size)
             }
             if (output.size >= 350) break
         }
@@ -519,19 +604,9 @@ ${current.fileContent}
     }
 
     private fun readLimited(input: java.io.InputStream): String {
-        val output = java.io.ByteArrayOutputStream()
-        input.use { source ->
-            val buffer = ByteArray(4_096)
-            var total = 0
-            while (true) {
-                val read = source.read(buffer)
-                if (read < 0) break
-                total += read
-                require(total <= 32_768) { "Dosya 32 KB sınırını aşıyor." }
-                output.write(buffer, 0, read)
-            }
+        return input.use { source ->
+            String(source.readBytes(), Charsets.UTF_8)
         }
-        return String(output.toByteArray(), Charsets.UTF_8)
     }
 
     private fun stripCodeFence(raw: String): String {
